@@ -3,9 +3,16 @@ import ApplicationServices
 
 class AppDelegate: NSObject, NSApplicationDelegate {
     var statusBarController: StatusBarController?
+    var keyboardMonitor: KeyboardMonitor?
+
+
 
     func applicationDidFinishLaunching(_ notification: Notification) {
         checkAccessibilityPermission()
+
+        keyboardMonitor = KeyboardMonitor()
+        keyboardMonitor?.start()
+        
         statusBarController = StatusBarController()
     }
     
