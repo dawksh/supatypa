@@ -18,19 +18,39 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     
     func checkAccessibilityPermission() {
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
-            let trusted = AXIsProcessTrusted()
+            self.verifyAndRequestPermission()
+        }
+    }
+    
+    func verifyAndRequestPermission() {
+        let trusted = AXIsProcessTrusted()
+        
+        if trusted {
+            self.startMonitoring()
+            statusBarController?.updatePermissionStatus(hasPermission: true)
+        } else {
+            statusBarController?.updatePermissionStatus(hasPermission: false)
             
-            if trusted {
-                self.startMonitoring()
-            } else {
-                let options = [
-                    kAXTrustedCheckOptionPrompt.takeRetainedValue() as String: true
-                ] as CFDictionary
+            let options = [
+                kAXTrustedCheckOptionPrompt.takeRetainedValue() as String: true
+            ] as CFDictionary
+            
+            AXIsProcessTrustedWithOptions(options)
+            
+            DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) {
+                self.verifyPermissionAfterDelay()
+            }
+            
+            Timer.scheduledTimer(withTimeInterval: 2.0, repeats: true) { [weak self] timer in
+                guard let self = self else {
+                    timer.invalidate()
+                    return
+                }
                 
-                AXIsProcessTrustedWithOptions(options)
-                
-                DispatchQueue.main.asyncAfter(deadline: .now() + 2.0) {
-                    self.verifyPermissionAfterDelay()
+                if AXIsProcessTrusted() {
+                    timer.invalidate()
+                    self.startMonitoring()
+                    self.statusBarController?.updatePermissionStatus(hasPermission: true)
                 }
             }
         }

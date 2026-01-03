@@ -36,6 +36,18 @@ class StatsStore {
         UserDefaults.standard.set(current.chars + chars, forKey: charsKey)
         UserDefaults.standard.set(current.words + words, forKey: wordsKey)
     }
+    
+    func incrementChar() {
+        let current = load()
+        UserDefaults.standard.set(todayString, forKey: dateKey)
+        UserDefaults.standard.set(current.chars + 1, forKey: charsKey)
+    }
+    
+    func incrementWord() {
+        let current = load()
+        UserDefaults.standard.set(todayString, forKey: dateKey)
+        UserDefaults.standard.set(current.words + 1, forKey: wordsKey)
+    }
 
     func reset() {
         UserDefaults.standard.set(todayString, forKey: dateKey)

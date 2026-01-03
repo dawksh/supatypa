@@ -5,9 +5,8 @@ class KeyboardMonitor {
 
     private var eventTap: CFMachPort?
     private var runLoopSource: CFRunLoopSource?
-
-    private(set) var charCount = 0
-    private(set) var wordCount = 0
+    
+    private var lastWasWhitespace = true
 
     func start() -> Bool {
         guard AXIsProcessTrusted() else {
@@ -79,10 +78,19 @@ class KeyboardMonitor {
         guard length > 0 else { return }
 
         let string = String(utf16CodeUnits: buffer, count: length)
-
-        let chars = string.count
-        let words = string.split(whereSeparator: { $0.isWhitespace }).count
-
-        StatsStore.shared.increment(chars: chars, words: words)
+        
+        for char in string {
+            let isWhitespace = char.isWhitespace
+            
+            if !isWhitespace && lastWasWhitespace {
+                StatsStore.shared.incrementWord()
+            }
+            
+            if !isWhitespace {
+                StatsStore.shared.incrementChar()
+            }
+            
+            lastWasWhitespace = isWhitespace
+        }
     }
 }
