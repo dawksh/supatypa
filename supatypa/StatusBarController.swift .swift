@@ -1,5 +1,6 @@
 import AppKit
 import ApplicationServices
+import Foundation
 
 class StatusBarController {
 
@@ -79,23 +80,31 @@ class StatusBarController {
     }
     
     @objc private func copyBinaryPath() {
-        let possiblePaths = [
-            "/opt/homebrew/bin/supatypa",
-            "/usr/local/bin/supatypa",
-            "/homebrew/bin/supatypa"
-        ]
+        var executablePath = ProcessInfo.processInfo.arguments[0]
         
-        let binaryPath = possiblePaths.first { FileManager.default.fileExists(atPath: $0) }
-        
-        if let path = binaryPath {
-            let pasteboard = NSPasteboard.general
-            pasteboard.clearContents()
-            pasteboard.setString(path, forType: .string)
-        } else {
-            let pasteboard = NSPasteboard.general
-            pasteboard.clearContents()
-            pasteboard.setString("supatypa not found in Homebrew paths", forType: .string)
+        if !executablePath.hasPrefix("/") {
+            if let cwd = FileManager.default.currentDirectoryPath as String? {
+                executablePath = (cwd as NSString).appendingPathComponent(executablePath)
+            }
         }
+        
+        var resolvedPath = (executablePath as NSString).standardizingPath
+        
+        while let attrs = try? FileManager.default.attributesOfItem(atPath: resolvedPath),
+              let fileType = attrs[.type] as? FileAttributeType,
+              fileType == .typeSymbolicLink,
+              let destination = try? FileManager.default.destinationOfSymbolicLink(atPath: resolvedPath) {
+            if destination.hasPrefix("/") {
+                resolvedPath = destination
+            } else {
+                resolvedPath = ((resolvedPath as NSString).deletingLastPathComponent as NSString).appendingPathComponent(destination)
+            }
+            resolvedPath = (resolvedPath as NSString).standardizingPath
+        }
+        
+        let pasteboard = NSPasteboard.general
+        pasteboard.clearContents()
+        pasteboard.setString(resolvedPath, forType: .string)
     }
 
     @objc private func quit() {
