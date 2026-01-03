@@ -17,6 +17,15 @@ A macOS menu bar app that tracks your daily typing statistics (characters and wo
 
 ## Installation
 
+### Homebrew (Recommended)
+
+```bash
+brew tap dawksh/supatypa
+brew install supatypa
+```
+
+### From Source
+
 1. Clone the repository
 2. Open `supatypa.xcodeproj` in Xcode
 3. Build and run the project
