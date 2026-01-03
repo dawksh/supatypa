@@ -9,6 +9,7 @@ class StatusBarController {
 
     private let statsItem = NSMenuItem(title: "Loading...", action: nil, keyEquivalent: "")
     private let permissionItem = NSMenuItem(title: "", action: #selector(requestPermission), keyEquivalent: "")
+    private let copyPathItem = NSMenuItem(title: "Copy Binary Path", action: #selector(copyBinaryPath), keyEquivalent: "")
     private var timer: Timer?
 
     init() {
@@ -19,6 +20,9 @@ class StatusBarController {
         let menu = NSMenu()
         menu.addItem(statsItem)
         menu.addItem(permissionItem)
+        menu.addItem(NSMenuItem.separator())
+        copyPathItem.target = self
+        menu.addItem(copyPathItem)
         menu.addItem(NSMenuItem.separator())
 
         let quitItem = NSMenuItem(
@@ -71,6 +75,26 @@ class StatusBarController {
     @objc private func requestPermission() {
         if let url = URL(string: "x-apple.systempreferences:com.apple.preference.security?Privacy_Accessibility") {
             NSWorkspace.shared.open(url)
+        }
+    }
+    
+    @objc private func copyBinaryPath() {
+        let possiblePaths = [
+            "/opt/homebrew/bin/supatypa",
+            "/usr/local/bin/supatypa",
+            "/homebrew/bin/supatypa"
+        ]
+        
+        let binaryPath = possiblePaths.first { FileManager.default.fileExists(atPath: $0) }
+        
+        if let path = binaryPath {
+            let pasteboard = NSPasteboard.general
+            pasteboard.clearContents()
+            pasteboard.setString(path, forType: .string)
+        } else {
+            let pasteboard = NSPasteboard.general
+            pasteboard.clearContents()
+            pasteboard.setString("supatypa not found in Homebrew paths", forType: .string)
         }
     }
 
