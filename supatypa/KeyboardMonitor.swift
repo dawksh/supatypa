@@ -9,7 +9,12 @@ class KeyboardMonitor {
     private(set) var charCount = 0
     private(set) var wordCount = 0
 
-    func start() {
+    func start() -> Bool {
+        guard AXIsProcessTrusted() else {
+            print("❌ Accessibility permission not granted")
+            return false
+        }
+
         let mask = CGEventMask(1 << CGEventType.keyDown.rawValue)
 
         eventTap = CGEvent.tapCreate(
@@ -34,22 +39,29 @@ class KeyboardMonitor {
         )
 
         guard let eventTap else {
-            return
+            print("❌ Failed to create event tap (check Accessibility permission)")
+            return false
         }
 
-        runLoopSource = CFMachPortCreateRunLoopSource(
+        guard let source = CFMachPortCreateRunLoopSource(
             kCFAllocatorDefault,
             eventTap,
             0
-        )
+        ) else {
+            print("❌ Failed to create run loop source")
+            return false
+        }
+
+        runLoopSource = source
 
         CFRunLoopAddSource(
             CFRunLoopGetCurrent(),
-            runLoopSource,
+            source,
             .commonModes
         )
 
         CGEvent.tapEnable(tap: eventTap, enable: true)
+        return true
     }
 
     private func handle(event: CGEvent) {

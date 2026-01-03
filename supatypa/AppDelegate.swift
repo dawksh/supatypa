@@ -5,7 +5,9 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     var statusBarController: StatusBarController?
     var keyboardMonitor: KeyboardMonitor?
 
-
+    func applicationWillFinishLaunching(_ notification: Notification) {
+        NSApp.setActivationPolicy(.accessory)
+    }
 
     func applicationDidFinishLaunching(_ notification: Notification) {
         keyboardMonitor = KeyboardMonitor()
@@ -15,26 +17,28 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     }
     
     func checkAccessibilityPermission() {
-        let trusted = AXIsProcessTrusted()
-        
-        if trusted {
-            keyboardMonitor?.start()
-        } else {
-            let options = [
-                kAXTrustedCheckOptionPrompt.takeRetainedValue() as String: true
-            ] as CFDictionary
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+            let trusted = AXIsProcessTrusted()
             
-            AXIsProcessTrustedWithOptions(options)
-            
-            DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) {
-                self.verifyPermissionAfterDelay()
+            if trusted {
+                self.startMonitoring()
+            } else {
+                let options = [
+                    kAXTrustedCheckOptionPrompt.takeRetainedValue() as String: true
+                ] as CFDictionary
+                
+                AXIsProcessTrustedWithOptions(options)
+                
+                DispatchQueue.main.asyncAfter(deadline: .now() + 2.0) {
+                    self.verifyPermissionAfterDelay()
+                }
             }
         }
     }
     
     func verifyPermissionAfterDelay() {
         if AXIsProcessTrusted() {
-            keyboardMonitor?.start()
+            startMonitoring()
         } else {
             showPermissionAlert()
             
@@ -44,11 +48,28 @@ class AppDelegate: NSObject, NSApplicationDelegate {
                 queue: .main
             ) { [weak self] _ in
                 guard let self = self else { return }
-                if AXIsProcessTrusted() {
-                    self.keyboardMonitor?.start()
-                    NotificationCenter.default.removeObserver(self)
+                DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
+                    if AXIsProcessTrusted() {
+                        self.startMonitoring()
+                        NotificationCenter.default.removeObserver(self)
+                    }
                 }
             }
+        }
+    }
+    
+    func startMonitoring() {
+        guard AXIsProcessTrusted() else {
+            return
+        }
+        
+        guard keyboardMonitor?.start() == true else {
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
+                if AXIsProcessTrusted() {
+                    _ = self.keyboardMonitor?.start()
+                }
+            }
+            return
         }
     }
     
@@ -67,3 +88,4 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         }
     }
 }
+
