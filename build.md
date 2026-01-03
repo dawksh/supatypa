@@ -111,6 +111,14 @@ git push --tags
 
 ### 8. Update Homebrew Formula
 
+#### 8.0. Check homebrew tap
+
+```bash
+cd ../homebrew-supatypa
+```
+
+If no tap then move to 8.1 else 8.2
+
 #### 8.1. Clone the Homebrew Tap (if not already)
 
 ```bash
