@@ -10,9 +10,22 @@
 		523F960B2F0929F700CFC9FE /* supatypa.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = supatypa.app; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
+/* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
+		523F961B2F092AB600CFC9FE /* Exceptions for "supatypa" folder in "supatypa" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				Info.plist,
+			);
+			target = 523F960A2F0929F700CFC9FE /* supatypa */;
+		};
+/* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
+
 /* Begin PBXFileSystemSynchronizedRootGroup section */
 		523F960D2F0929F700CFC9FE /* supatypa */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
+			exceptions = (
+				523F961B2F092AB600CFC9FE /* Exceptions for "supatypa" folder in "supatypa" target */,
+			);
 			path = supatypa;
 			sourceTree = "<group>";
 		};
@@ -258,6 +271,7 @@
 				ENABLE_HARDENED_RUNTIME = YES;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = supatypa/Info.plist;
 				INFOPLIST_KEY_NSHumanReadableCopyright = "";
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
@@ -285,6 +299,7 @@
 				ENABLE_HARDENED_RUNTIME = YES;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = supatypa/Info.plist;
 				INFOPLIST_KEY_NSHumanReadableCopyright = "";
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
