@@ -54,12 +54,9 @@ class KeyboardMonitor {
     }
 
     private func handle(event: CGEvent) {
-        // Ignore command shortcuts (Cmd+C, Cmd+V, etc.)
-        if event.flags.contains(.maskCommand) {
-            return
-        }
+        if event.flags.contains(.maskCommand) { return }
 
-        var length: Int = 0
+        var length = 0
         var buffer = [UniChar](repeating: 0, count: 8)
 
         event.keyboardGetUnicodeString(
@@ -72,7 +69,9 @@ class KeyboardMonitor {
 
         let string = String(utf16CodeUnits: buffer, count: length)
 
-        charCount += string.count
-        wordCount += string.split(whereSeparator: { $0.isWhitespace }).count
+        let chars = string.count
+        let words = string.split(whereSeparator: { $0.isWhitespace }).count
+
+        StatsStore.shared.increment(chars: chars, words: words)
     }
 }
