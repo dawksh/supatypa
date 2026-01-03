@@ -9,17 +9,14 @@ class KeyboardMonitor {
     private var lastWasWhitespace = true
 
     func start() -> Bool {
-        guard AXIsProcessTrusted() else {
-            print("❌ Accessibility permission not granted")
-            return false
-        }
+        guard CGPreflightListenEventAccess() else { return false }
 
         let mask = CGEventMask(1 << CGEventType.keyDown.rawValue)
 
         eventTap = CGEvent.tapCreate(
             tap: .cgSessionEventTap,
             place: .headInsertEventTap,
-            options: .defaultTap,
+            options: .listenOnly,
             eventsOfInterest: mask,
             callback: { proxy, type, event, userInfo in
                 guard type == .keyDown,
@@ -38,7 +35,6 @@ class KeyboardMonitor {
         )
 
         guard let eventTap else {
-            print("❌ Failed to create event tap (check Accessibility permission)")
             return false
         }
 

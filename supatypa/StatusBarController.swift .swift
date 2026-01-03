@@ -53,9 +53,9 @@ class StatusBarController {
         let stats = StatsStore.shared.load()
         statsItem.title = "Today: \(stats.chars) chars • \(stats.words) words"
         
-        let hasPermission = AXIsProcessTrusted()
+        let hasPermission = CGPreflightListenEventAccess()
         if !hasPermission {
-            permissionItem.title = "⚠️ Enable Accessibility Permission"
+            permissionItem.title = "⚠️ Enable Input Monitoring"
             permissionItem.target = self
             permissionItem.isHidden = false
         } else {
@@ -67,16 +67,25 @@ class StatusBarController {
         if hasPermission {
             permissionItem.isHidden = true
         } else {
-            permissionItem.title = "⚠️ Enable Accessibility Permission"
+            permissionItem.title = "⚠️ Enable Input Monitoring"
             permissionItem.target = self
             permissionItem.isHidden = false
         }
     }
     
     @objc private func requestPermission() {
-        if let url = URL(string: "x-apple.systempreferences:com.apple.preference.security?Privacy_Accessibility") {
-            NSWorkspace.shared.open(url)
+        if !CGPreflightListenEventAccess() {
+            _ = CGRequestListenEventAccess()
         }
+        
+        _ = [
+            "x-apple.systempreferences:com.apple.preference.security?Privacy_ListenEvent",
+            "x-apple.systempreferences:com.apple.preference.security?Privacy_InputMonitoring",
+            "x-apple.systempreferences:com.apple.preference.security?Privacy"
+        ]
+        .compactMap(URL.init(string:))
+        .first
+        .map(NSWorkspace.shared.open)
     }
     
     @objc private func copyBinaryPath() {

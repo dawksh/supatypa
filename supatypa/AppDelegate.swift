@@ -14,29 +14,24 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         keyboardMonitor = KeyboardMonitor()
         statusBarController = StatusBarController()
         
-        checkAccessibilityPermission()
+        checkInputMonitoringPermission()
     }
     
-    func checkAccessibilityPermission() {
+    func checkInputMonitoringPermission() {
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
             self.verifyAndRequestPermission()
         }
     }
     
     func verifyAndRequestPermission() {
-        let trusted = AXIsProcessTrusted()
+        let trusted = CGPreflightListenEventAccess()
         
         if trusted {
             self.startMonitoring()
             statusBarController?.updatePermissionStatus(hasPermission: true)
         } else {
             statusBarController?.updatePermissionStatus(hasPermission: false)
-            
-            let options = [
-                kAXTrustedCheckOptionPrompt.takeRetainedValue() as String: true
-            ] as CFDictionary
-            
-            AXIsProcessTrustedWithOptions(options)
+            _ = CGRequestListenEventAccess()
             
             DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) {
                 self.verifyPermissionAfterDelay()
@@ -48,7 +43,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
                     return
                 }
                 
-                if AXIsProcessTrusted() {
+                if CGPreflightListenEventAccess() {
                     timer.invalidate()
                     self.startMonitoring()
                     self.statusBarController?.updatePermissionStatus(hasPermission: true)
@@ -58,7 +53,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     }
     
     func verifyPermissionAfterDelay() {
-        if AXIsProcessTrusted() {
+        if CGPreflightListenEventAccess() {
             startMonitoring()
         } else {
             showPermissionAlert()
@@ -70,7 +65,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
             ) { [weak self] _ in
                 guard let self = self else { return }
                 DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
-                    if AXIsProcessTrusted() {
+                    if CGPreflightListenEventAccess() {
                         self.startMonitoring()
                         NotificationCenter.default.removeObserver(self)
                     }
@@ -80,13 +75,9 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     }
     
     func startMonitoring() {
-        guard AXIsProcessTrusted() else {
-            return
-        }
-        
         guard keyboardMonitor?.start() == true else {
             DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
-                if AXIsProcessTrusted() {
+                if CGPreflightListenEventAccess() {
                     _ = self.keyboardMonitor?.start()
                 }
             }
@@ -96,7 +87,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     
     func showPermissionAlert() {
         let alert = NSAlert()
-        alert.messageText = "Accessibility Permission Required"
+        alert.messageText = "Input Monitoring Permission Required"
         
         var executablePath = ProcessInfo.processInfo.arguments[0]
         if !executablePath.hasPrefix("/") {
@@ -118,10 +109,12 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         }
         
         let informativeText = """
-This app needs accessibility permissions to track your typing.
+This app needs Input Monitoring permission to track your typing.
 
-1. Open System Settings → Privacy & Security → Accessibility
-2. Ensure this binary is enabled: \(resolvedPath)
+1. Open System Settings → Privacy & Security → Input Monitoring
+2. Ensure this app/binary is enabled:
+- App: \(Bundle.main.bundlePath)
+- Executable: \(resolvedPath)
 
 If the binary is not in the list:
 - Click the "+" button and add: \(resolvedPath)
@@ -138,9 +131,14 @@ Note: For Homebrew-installed binaries, make sure you're adding the actual path (
         
         let response = alert.runModal()
         if response == .alertFirstButtonReturn {
-            if let url = URL(string: "x-apple.systempreferences:com.apple.preference.security?Privacy_Accessibility") {
-                NSWorkspace.shared.open(url)
-            }
+            _ = [
+                "x-apple.systempreferences:com.apple.preference.security?Privacy_ListenEvent",
+                "x-apple.systempreferences:com.apple.preference.security?Privacy_InputMonitoring",
+                "x-apple.systempreferences:com.apple.preference.security?Privacy"
+            ]
+            .compactMap(URL.init(string:))
+            .first
+            .map(NSWorkspace.shared.open)
         } else if response == .alertSecondButtonReturn {
             let pasteboard = NSPasteboard.general
             pasteboard.clearContents()
