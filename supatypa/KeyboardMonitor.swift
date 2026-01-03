@@ -34,7 +34,6 @@ class KeyboardMonitor {
         )
 
         guard let eventTap else {
-            print("❌ Failed to create event tap (check Accessibility permission)")
             return
         }
 

@@ -11,7 +11,11 @@ import SwiftUI
 struct supatypaApp: App {
     @NSApplicationDelegateAdaptor(AppDelegate.self) var appDelegate
     
+    init() {
+        NSApp.setActivationPolicy(.accessory)
+    }
+    
     var body: some Scene {
-            Settings { EmptyView() }
+        Settings { EmptyView() }
     }
 }

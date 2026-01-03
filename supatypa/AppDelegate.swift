@@ -8,25 +8,45 @@ class AppDelegate: NSObject, NSApplicationDelegate {
 
 
     func applicationDidFinishLaunching(_ notification: Notification) {
-        checkAccessibilityPermission()
-
         keyboardMonitor = KeyboardMonitor()
-        keyboardMonitor?.start()
-        
         statusBarController = StatusBarController()
+        
+        checkAccessibilityPermission()
     }
     
     func checkAccessibilityPermission() {
         let trusted = AXIsProcessTrusted()
         
-        if !trusted {
+        if trusted {
+            keyboardMonitor?.start()
+        } else {
             let options = [
                 kAXTrustedCheckOptionPrompt.takeRetainedValue() as String: true
             ] as CFDictionary
             
-            if !AXIsProcessTrustedWithOptions(options) {
-                DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
-                    self.showPermissionAlert()
+            AXIsProcessTrustedWithOptions(options)
+            
+            DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) {
+                self.verifyPermissionAfterDelay()
+            }
+        }
+    }
+    
+    func verifyPermissionAfterDelay() {
+        if AXIsProcessTrusted() {
+            keyboardMonitor?.start()
+        } else {
+            showPermissionAlert()
+            
+            NotificationCenter.default.addObserver(
+                forName: NSApplication.didBecomeActiveNotification,
+                object: nil,
+                queue: .main
+            ) { [weak self] _ in
+                guard let self = self else { return }
+                if AXIsProcessTrusted() {
+                    self.keyboardMonitor?.start()
+                    NotificationCenter.default.removeObserver(self)
                 }
             }
         }
