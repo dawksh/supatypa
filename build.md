@@ -95,15 +95,15 @@ Recommended format: `MAJOR.MINOR.PATCH` (e.g., `0.1.0`, `0.2.0`, `1.0.0`)
 
 ```bash
 cd /Users/daksh/projects/supatypa/supatypa
-git tag v0.1.0  # Replace with actual version
+git tag 0.1.0  # Replace with actual version
 git push --tags
 ```
 
 #### 7.2. Create GitHub Release
 
 1. Go to: https://github.com/dawksh/supatypa/releases/new
-2. Select the tag you just created (e.g., `v0.1.0`)
-3. Release title: `v0.1.0` (or add release notes)
+2. Select the tag you just created (e.g., `0.1.0`)
+3. Release title: `0.1.0` (or add release notes)
 4. Upload the `supatypa` binary as an asset
 5. Publish the release
 
@@ -148,8 +148,8 @@ class Supatypa < Formula
     <<~EOS
       Supatypa runs as a background menu bar app.
 
-      Accessibility permission is REQUIRED:
-        System Settings → Privacy & Security → Accessibility
+      Input Monitoring permission is REQUIRED:
+        System Settings → Privacy & Security → Input Monitoring
         Enable "supatypa"
 
       If macOS blocks the app on first launch:
@@ -222,7 +222,7 @@ supatypa
 ### Binary Won't Run
 
 - Check Console.app for crash logs
-- Verify Accessibility permissions
+- Verify Input Monitoring permissions
 - Ensure you're running on macOS (not iOS simulator)
 - Check if binary architecture matches your Mac (arm64 vs x86_64)
 
@@ -251,7 +251,7 @@ Users need to:
 
 1. Go to System Settings → Privacy & Security
 2. Click "Allow Anyway" for the blocked app
-3. Grant Accessibility permission
+3. Grant Input Monitoring permission
 
 ## Notes
 
